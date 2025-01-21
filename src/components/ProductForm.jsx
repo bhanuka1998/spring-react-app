@@ -2,10 +2,10 @@
 import { Button, Container, TextField, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axiosInstance from "../api/axios";
+import { addProduct, axiosInstance, updateProduct } from "../api/axios";
 
 const ProductForm = () => {
-  const [product, setProduct] = useState({ name: "", price: 0 });
+  const [product, setProduct] = useState({ name: "", price: "" }); // Ensure price is a string
   const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
@@ -15,7 +15,7 @@ const ProductForm = () => {
     if (id) {
       setIsEditMode(true);
       axiosInstance
-        .get(`/api/products/${id}`)
+        .get(`/${id}`)
         .then((response) => {
           setProduct(response.data);
         })
@@ -26,27 +26,27 @@ const ProductForm = () => {
   }, [id]);
 
   // Handle form submission (add or update product)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isEditMode) {
-      axiosInstance
-        .put(`/api/products/${id}`, product)
-        .then(() => {
-          navigate("/products");
-        })
-        .catch((error) => {
-          console.error("Error updating product:", error);
-        });
-    } else {
-      axiosInstance
-        .post("/api/products", product)
-        .then(() => {
-          navigate("/products");
-        })
-        .catch((error) => {
-          console.error("Error adding product:", error);
-        });
+    try {
+      if (isEditMode) {
+        await updateProduct(id, product);
+      } else {
+        await addProduct(product);
+      }
+      navigate("/products");
+    } catch (error) {
+      console.error(
+        isEditMode ? "Error updating product" : "Error adding product",
+        error
+      );
     }
+  };
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
   };
 
   return (
@@ -57,18 +57,22 @@ const ProductForm = () => {
       <form onSubmit={handleSubmit}>
         <TextField
           label="Product Name"
+          name="name"
           value={product.name}
-          onChange={(e) => setProduct({ ...product, name: e.target.value })}
+          onChange={handleInputChange}
           fullWidth
           margin="normal"
+          required
         />
         <TextField
           label="Product Price"
+          name="price"
           value={product.price}
-          onChange={(e) => setProduct({ ...product, price: e.target.value })}
+          onChange={handleInputChange}
           fullWidth
           margin="normal"
-          type="number"
+          type="text" // Keep it as a text field to align with string handling
+          required
         />
         <Button type="submit" variant="contained" color="primary">
           {isEditMode ? "Update Product" : "Add Product"}

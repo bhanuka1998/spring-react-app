@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axiosInstance from "../api/axios";
+import { deleteProduct, getAllProducts } from "../api/axios";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -19,29 +19,30 @@ const ProductList = () => {
 
   // Fetch products from the backend
   useEffect(() => {
-    axiosInstance
-      .get("/api/products") // Your Spring Boot API endpoint for fetching products
-      .then((response) => {
-        setProducts(response.data);
-      })
-      .catch((error) => {
+    const fetchProducts = async () => {
+      try {
+        const productData = await getAllProducts(); // Use axios function
+        setProducts(productData);
+      } catch (error) {
         console.error("Error fetching products:", error);
-      });
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  const handleDelete = () => {
+  // Handle product deletion
+  const handleDelete = async () => {
     if (productToDelete) {
-      axiosInstance
-        .delete(`/api/products/${productToDelete.id}`) // Spring Boot endpoint for deleting a product
-        .then(() => {
-          setProducts(
-            products.filter((product) => product.id !== productToDelete.id)
-          );
-          setOpen(false);
-        })
-        .catch((error) => {
-          console.error("Error deleting product:", error);
-        });
+      try {
+        await deleteProduct(productToDelete.id); // Use axios function
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.id !== productToDelete.id)
+        );
+        setOpen(false);
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
     }
   };
 
@@ -99,7 +100,11 @@ const ProductList = () => {
       </Dialog>
 
       <Link to="/add">
-        <Button variant="contained" color="primary">
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginTop: "20px" }}
+        >
           Add New Product
         </Button>
       </Link>
