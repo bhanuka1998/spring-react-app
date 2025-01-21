@@ -11,7 +11,8 @@ const LandingPage = () => {
       </Typography>
       <Typography variant="body1" align="center" paragraph>
         This application allows you to manage products with ease. You can view
-        all the products, add new ones, or edit them.
+        all the products, add new ones, or edit them. I have used SpringBoot and
+        ReactJs to develop this application.
       </Typography>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <Link to="/products">
